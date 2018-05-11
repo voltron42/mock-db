@@ -30,7 +30,17 @@
   (fn mock-find-by-keys
     ([db table columns] (mock-find-by-keys db table columns {}))
     ([_ table columns opts]
-     (apply-mock :query db-atom opts [table (set (keys columns))] columns))))
+     (apply-mock :find-by-keys db-atom opts [table (set (keys columns))] columns))))
+
+(defn build-mock-get-by-id [db-atom]
+  (fn mock-get-by-id
+    ([db table pk-value] (mock-get-by-id db table pk-value {}))
+    ([db table pk-value pk-name-or-opts]
+     (if (map? pk-name-or-opts)
+       (mock-get-by-id db table pk-value :id pk-name-or-opts)
+       (mock-get-by-id db table pk-value pk-name-or-opts {})))
+    ([_ table pk-value pk-name opts]
+     (apply-mock :get-by-id db-atom opts [table] [pk-value pk-name]))))
 
 (defn build-mock-execute [db-atom]
   (fn mock-execute
@@ -81,5 +91,6 @@
                  jdbc/update! (build-mock-update ~db-atom)
                  jdbc/delete! (build-mock-delete ~db-atom)
                  jdbc/insert! (build-mock-insert ~db-atom)
-                 jdbc/insert-multi! (build-mock-insert-multi ~db-atom)]
+                 jdbc/insert-multi! (build-mock-insert-multi ~db-atom)
+                 jdbc/get-by-id (build-mock-get-by-id ~db-atom)]
      ~@body))
